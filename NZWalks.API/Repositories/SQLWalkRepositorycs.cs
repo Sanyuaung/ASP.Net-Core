@@ -8,10 +8,14 @@ namespace NZWalks.API.Repositories
     {
         private readonly NZWalksDbContext dbContext;
 
+        #region Constructor
         public SQLWalkRepositorycs(NZWalksDbContext dbContext)
         {
             this.dbContext = dbContext;
         }
+        #endregion
+
+        #region CreateAsync
         public async Task<Walk> CreateAsync(Walk walk)
         {
             await dbContext.Walks.AddAsync(walk);
@@ -22,6 +26,9 @@ namespace NZWalks.API.Repositories
                 .Include("Region")
                 .FirstOrDefaultAsync(x => x.Id == walk.Id);
         }
+        #endregion
+
+        #region GetWalksAsync
         public async Task<List<Walk>> GetWalksAsync()
         {
             return await dbContext.Walks
@@ -29,6 +36,9 @@ namespace NZWalks.API.Repositories
                 .Include("Region")
                 .ToListAsync();
         }
+        #endregion
+
+        #region GetByIdAsync
         public async Task<Walk?> GetByIdAsync(Guid id)
         {
             return await dbContext.Walks
@@ -36,6 +46,9 @@ namespace NZWalks.API.Repositories
                 .Include("Region")
                 .FirstOrDefaultAsync(x => x.Id  == id);
         }
+        #endregion
+
+        #region UpdateWalkAsync
         public async Task<Walk?> UpdateWalkAsync(Guid id, Walk walk)
         {
             var  existingWalk = await dbContext.Walks.FirstOrDefaultAsync(x => x.Id == id);
@@ -56,6 +69,9 @@ namespace NZWalks.API.Repositories
                 .Include(x => x.Region)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+        #endregion
+
+        #region DeleteWalkAsync
         public async Task<Walk?> DeleteWalkAsync(Guid id)
         {
             var existingWalk = await dbContext.Walks
@@ -70,5 +86,6 @@ namespace NZWalks.API.Repositories
             await dbContext.SaveChangesAsync();
             return existingWalk;
         }
+        #endregion
     }
 }
