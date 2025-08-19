@@ -79,7 +79,7 @@ namespace NZWalks.API.Controllers
             //    RegionImageUrl = regionDomainModel.RegionImageUrl
             //};
             var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
-            regionDomainModel =await regionRepository.CreateAsync(regionDomainModel);
+            regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
             var regionDto = mapper.Map<RegionDto>(regionDomainModel);
             return CreatedAtAction(nameof(GetRegionById), new { id = regionDomainModel.Id }, regionDto);
         }
