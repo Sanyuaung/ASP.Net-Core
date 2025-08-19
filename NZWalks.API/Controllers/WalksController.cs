@@ -22,10 +22,17 @@ namespace NZWalks.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreteWalk([FromBody] AddWalkRequestDto addWalkRequestDto)
         {
-            var walkDomainModel = mapper.Map<Walk>(addWalkRequestDto);
-            walkDomainModel = await walkRepository.CreateAsync(walkDomainModel);
-            var walkDto = mapper.Map<WalkDto>(walkDomainModel);
-            return CreatedAtAction(nameof(GetWalkById), new { id = walkDto.Id }, walkDto);
+            if (ModelState.IsValid)
+            {
+                var walkDomainModel = mapper.Map<Walk>(addWalkRequestDto);
+                walkDomainModel = await walkRepository.CreateAsync(walkDomainModel);
+                var walkDto = mapper.Map<WalkDto>(walkDomainModel);
+                return CreatedAtAction(nameof(GetWalkById), new { id = walkDto.Id }, walkDto);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
         [HttpGet]
         public async Task<IActionResult> GetAllWalks()
@@ -50,14 +57,21 @@ namespace NZWalks.API.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> UpdateWalk([FromRoute] Guid id, [FromBody] UpdateWalkRequestDto updateWalkRequestDto)
         {
-            var walkDomainModel = mapper.Map<Walk>(updateWalkRequestDto);
-            walkDomainModel = await walkRepository.UpdateWalkAsync(id, walkDomainModel);
-            if (walkDomainModel == null)
+            if (ModelState.IsValid)
             {
-                return NotFound(new { Message = $"Walk with Id {id} not found!." });
+                var walkDomainModel = mapper.Map<Walk>(updateWalkRequestDto);
+                walkDomainModel = await walkRepository.UpdateWalkAsync(id, walkDomainModel);
+                if (walkDomainModel == null)
+                {
+                    return NotFound(new { Message = $"Walk with Id {id} not found!." });
+                }
+                var regionDto = mapper.Map<WalkDto>(walkDomainModel);
+                return Ok(regionDto);
             }
-            var regionDto = mapper.Map<WalkDto>(walkDomainModel);
-            return Ok(regionDto);
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
         [HttpDelete]
         [Route("{id:Guid}")]

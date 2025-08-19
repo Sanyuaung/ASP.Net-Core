@@ -78,10 +78,17 @@ namespace NZWalks.API.Controllers
             //    Code = regionDomainModel.Code,
             //    RegionImageUrl = regionDomainModel.RegionImageUrl
             //};
-            var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
-            regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
-            var regionDto = mapper.Map<RegionDto>(regionDomainModel);
-            return CreatedAtAction(nameof(GetRegionById), new { id = regionDomainModel.Id }, regionDto);
+            if (ModelState.IsValid)
+            {
+                var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
+                regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
+                var regionDto = mapper.Map<RegionDto>(regionDomainModel);
+                return CreatedAtAction(nameof(GetRegionById), new { id = regionDomainModel.Id }, regionDto);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
         [HttpPut]
         [Route("{id:Guid}")]
@@ -100,14 +107,22 @@ namespace NZWalks.API.Controllers
             //    Code = regionDomainModel.Code,
             //    RegionImageUrl = regionDomainModel.RegionImageUrl
             //};
-            var regionDomainModel = mapper.Map<Region>(updateRegionRequestDto);
-            regionDomainModel = await regionRepository.UpdateAsync(id, regionDomainModel);
-            if(regionDomainModel == null)
+            if (ModelState.IsValid)
             {
-                return NotFound(new { Message = $"Region with Id {id} not found!." });
+                var regionDomainModel = mapper.Map<Region>(updateRegionRequestDto);
+                regionDomainModel = await regionRepository.UpdateAsync(id, regionDomainModel);
+                if(regionDomainModel == null)
+                {
+                    return NotFound(new { Message = $"Region with Id {id} not found!." });
+                }
+                var regionDto = mapper.Map<RegionDto>(regionDomainModel);
+                return Ok(regionDto);
             }
-            var regionDto = mapper.Map<RegionDto>(regionDomainModel);
-            return Ok(regionDto);
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
         }
         [HttpDelete]
         [Route("{id:Guid}")]
