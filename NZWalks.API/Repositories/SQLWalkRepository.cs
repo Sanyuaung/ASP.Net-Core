@@ -29,12 +29,21 @@ namespace NZWalks.API.Repositories
         #endregion
 
         #region GetWalksAsync
-        public async Task<List<Walk>> GetWalksAsync()
+        public async Task<List<Walk>> GetWalksAsync(string? filterOn = null, string? filterQuery = null)
         {
-            return await dbContext.Walks
-                .Include("Difficulty")
-                .Include("Region")
-                .ToListAsync();
+            var walks = dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+            if(string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrEmpty(filterQuery) == false)
+            {
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = walks.Where(x => x.Name.Contains(filterQuery));
+                }
+                if (filterOn.Equals("Description", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = walks.Where(x => x.Description.Contains(filterQuery));
+                }
+            }
+            return await walks.ToListAsync();
         }
         #endregion
 
