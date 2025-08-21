@@ -22,6 +22,46 @@ namespace NZWalks.API.Repositories
         }
         #endregion
 
+        #region GetRegionsAsync
+        public async Task<(List<Region> Regions, int TotalCount)> GetRegionsAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 10)
+        {
+            var query = dbContext.Regions.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
+            {
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => x.Name.Contains(filterQuery));
+                }
+                else if (filterOn.Equals("Code", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => x.Code.Contains(filterQuery));
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = isAscending ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name);
+                }
+                else if (sortBy.Equals("Code", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = isAscending ? query.OrderBy(x => x.Code) : query.OrderByDescending(x => x.Code);
+                }
+            }
+
+            var regions = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (regions, totalCount);
+        }
+        #endregion
+
         #region GetByIdAsync
         public async Task<Region?> GetByIdAsync(Guid id)
         {

@@ -29,33 +29,49 @@ namespace NZWalks.API.Repositories
         #endregion
 
         #region GetWalksAsync
-        public async Task<List<Walk>> GetWalksAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
+        public async Task<(List<Walk> Walks, int TotalCount)> GetWalksAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 10)
         {
-            var walks = dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
-            if(string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrEmpty(filterQuery) == false)
+            var walksQuery = dbContext.Walks
+                .Include("Difficulty")
+                .Include("Region")
+                .AsQueryable();
+
+            // Filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
             {
                 if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
                 {
-                    walks = walks.Where(x => x.Name.Contains(filterQuery));
+                    walksQuery = walksQuery.Where(x => x.Name.Contains(filterQuery));
                 }
-                else if(filterOn.Equals("Description", StringComparison.OrdinalIgnoreCase))
+                else if (filterOn.Equals("Description", StringComparison.OrdinalIgnoreCase))
                 {
-                    walks = walks.Where(x => x.Description.Contains(filterQuery));
+                    walksQuery = walksQuery.Where(x => x.Description.Contains(filterQuery));
                 }
             }
-            if(string.IsNullOrWhiteSpace(sortBy) == false)
+
+            // Total count BEFORE pagination
+            var totalCount = await walksQuery.CountAsync();
+
+            // Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
             {
-                if (sortBy.Equals("Name",StringComparison.OrdinalIgnoreCase))
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
                 {
-                    walks = isAscending ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name);
+                    walksQuery = isAscending ? walksQuery.OrderBy(x => x.Name) : walksQuery.OrderByDescending(x => x.Name);
                 }
                 else if (sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
                 {
-                    walks = isAscending ? walks.OrderBy(x => x.LengthInKm) : walks.OrderByDescending(x => x.LengthInKm);
+                    walksQuery = isAscending ? walksQuery.OrderBy(x => x.LengthInKm) : walksQuery.OrderByDescending(x => x.LengthInKm);
                 }
             }
-            walks = walks.Skip((pageNumber - 1) * pageSize).Take(pageSize);
-            return await walks.ToListAsync();
+
+            // Pagination
+            var walks = await walksQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (walks, totalCount);
         }
         #endregion
 

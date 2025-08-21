@@ -1,10 +1,11 @@
-﻿    using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
+using NZWalks.API.Models.Responses;
 
 namespace NZWalks.API.Controllers
 {
@@ -31,17 +32,19 @@ namespace NZWalks.API.Controllers
             var difficultyDomainModel = mapper.Map<Difficulty>(addDifficultyRequestDto);
             difficultyDomainModel = await difficultyRepository.CreateAsync(difficultyDomainModel);
             var difficultyDto = mapper.Map<DifficultyDto>(difficultyDomainModel);
-            return CreatedAtAction(nameof(GetDifficultyById), new { id = difficultyDto.Id }, difficultyDto);
+            return CreatedAtAction(nameof(GetDifficultyById), new { id = difficultyDto.Id }, ApiResponse.Lists(difficultyDto));
         }
         #endregion
 
         #region GetAllDifficulties
         [HttpGet]
-        public async Task<IActionResult> GetAllDifficulties()
+        public async Task<IActionResult> GetAllDifficulties([FromQuery] string? filterOn,[FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var difficultiesDomainModel = await difficultyRepository.GetAllAsync();
+            var (difficultiesDomainModel, totalCount) = await difficultyRepository.GetDifficultiesAsync(filterOn,filterQuery,sortBy,isAscending ?? true,pageNumber,pageSize);
             var difficultyDto = mapper.Map<List<DifficultyDto>>(difficultiesDomainModel);
-            return Ok(difficultyDto);
+
+            var response = ApiResponse.WithPagination(difficultyDto, pageNumber, pageSize, totalCount);
+            return Ok(response);
         }
         #endregion
 
@@ -56,7 +59,7 @@ namespace NZWalks.API.Controllers
                 return NotFound();
             }
             var difficultyDto = mapper.Map<DifficultyDto> (difficultyDomainModel);
-            return Ok(difficultyDto);
+            return Ok(ApiResponse.Lists(difficultyDto));
         }
         #endregion
 
@@ -73,7 +76,7 @@ namespace NZWalks.API.Controllers
                 return NotFound();
             }
             var difficultyDto = mapper.Map<DifficultyDto>(difficultyDomainModel);
-            return Ok(difficultyDto);
+            return Ok(ApiResponse.Lists(difficultyDto));
         }
         #endregion
 
@@ -89,7 +92,7 @@ namespace NZWalks.API.Controllers
                 return NotFound();
             }
             var difficultyDto = mapper.Map<DifficultyDto>(difficultyDomainModel);
-            return Ok(difficultyDto);
+            return Ok(ApiResponse.Lists(difficultyDto));
         }
         #endregion
     }

@@ -21,6 +21,38 @@ namespace NZWalks.API.Repositories
         }
         #endregion
 
+        #region GetDifficultiesAsync
+        public async Task<(List<Difficulty> Difficulties, int TotalCount)> GetDifficultiesAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 10)
+        {
+            var query = dbContext.Difficulties.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
+            {
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => x.Name.Contains(filterQuery));
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = isAscending ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name);
+                }
+            }
+
+            var difficulties = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (difficulties, totalCount);
+        }
+        #endregion
+
         #region GetByIdAsync
         public async Task<Difficulty?> GetByIdAsync(Guid id)
         {

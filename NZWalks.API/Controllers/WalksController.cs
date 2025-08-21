@@ -5,6 +5,7 @@ using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
+using NZWalks.API.Models.Responses;
 
 namespace NZWalks.API.Controllers
 {
@@ -31,17 +32,19 @@ namespace NZWalks.API.Controllers
             var walkDomainModel = mapper.Map<Walk>(addWalkRequestDto);
             walkDomainModel = await walkRepository.CreateAsync(walkDomainModel);
             var walkDto = mapper.Map<WalkDto>(walkDomainModel);
-            return CreatedAtAction(nameof(GetWalkById), new { id = walkDto.Id }, walkDto);
+            return CreatedAtAction(nameof(GetWalkById), new { id = walkDto.Id }, ApiResponse.Lists(walkDto));
         }
         #endregion
 
         #region GetAllWalks
         [HttpGet]
-        public async Task<IActionResult> GetAllWalks([FromQuery] string? filterOn,[FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
+        public async Task<IActionResult> GetAllWalks([FromQuery] string? filterOn,[FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var walksDomainModel = await walkRepository.GetWalksAsync(filterOn,filterQuery,sortBy,isAscending ?? true,pageNumber,pageSize);
+            var (walksDomainModel, totalCount) = await walkRepository.GetWalksAsync(filterOn,filterQuery,sortBy,isAscending ?? true,pageNumber,pageSize);
             var walksDto = mapper.Map<List<WalkDto>>(walksDomainModel);
-            return Ok(walksDto);
+
+            var response = ApiResponse.WithPagination(walksDto, pageNumber, pageSize, totalCount);
+            return Ok(response);
         }
         #endregion
 
@@ -56,7 +59,7 @@ namespace NZWalks.API.Controllers
                 return NotFound();
             }
             var walkDto = mapper.Map<WalkDto>(walkDomainModel);
-            return Ok(walkDto);
+            return Ok(ApiResponse.Lists(walkDto));
         }
         #endregion
 
@@ -72,8 +75,8 @@ namespace NZWalks.API.Controllers
             {
                 return NotFound(new { Message = $"Walk with Id {id} not found!." });
             }
-            var regionDto = mapper.Map<WalkDto>(walkDomainModel);
-            return Ok(regionDto);
+            var walkDto = mapper.Map<WalkDto>(walkDomainModel);
+            return Ok(ApiResponse.Lists(walkDto));
         }
         #endregion
 
@@ -88,7 +91,7 @@ namespace NZWalks.API.Controllers
                 return NotFound(new { Message = $"Walk with Id {id} not found!." });
             }
             var walkDto = mapper.Map<WalkDto>(walkDomailModel);
-            return Ok(walkDto);
+            return Ok(ApiResponse.Lists(walkDto));
         }
         #endregion
     }

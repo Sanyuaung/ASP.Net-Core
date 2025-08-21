@@ -6,6 +6,7 @@ using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
+using NZWalks.API.Models.Responses;
 
 namespace NZWalks.API.Controllers
 {
@@ -28,24 +29,13 @@ namespace NZWalks.API.Controllers
 
         #region GetAllRegions
         [HttpGet]
-        public async Task<IActionResult> GetAllRegions()
+        public async Task<IActionResult> GetAllRegions([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            //Domain Models
-            var regionsDomain = await regionRepository.GetAllAsync();
-            //DTO 
-            //var regionsDto = new List<RegionDto>();
-            //foreach(var regionDomain in regionsDomain)
-            //{
-            //    regionsDto.Add(new RegionDto()
-            //     {
-            //        Id = regionDomain.Id,
-            //        Code = regionDomain.Code,
-            //        Name = regionDomain.Name,
-            //        RegionImageUrl = regionDomain.RegionImageUrl,
-            //    });
-            //}
+            var (regionsDomain, totalCount) = await regionRepository.GetRegionsAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
             var regionsDto = mapper.Map<List<RegionDto>>(regionsDomain);
-            return Ok(regionsDto);
+
+            var response = ApiResponse.WithPagination(regionsDto, pageNumber, pageSize, totalCount);
+            return Ok(response);
         }
         #endregion
 
@@ -68,7 +58,7 @@ namespace NZWalks.API.Controllers
             //    RegionImageUrl = regionDomain.RegionImageUrl,
             //};
             var regionDto = mapper.Map<RegionDto>(regionDomain);
-            return Ok(regionDto);
+            return Ok(ApiResponse.Lists(regionDto));
         }
         #endregion
 
@@ -93,7 +83,7 @@ namespace NZWalks.API.Controllers
                 var regionDomainModel = mapper.Map<Region>(addRegionRequestDto);
                 regionDomainModel = await regionRepository.CreateAsync(regionDomainModel);
                 var regionDto = mapper.Map<RegionDto>(regionDomainModel);
-                return CreatedAtAction(nameof(GetRegionById), new { id = regionDomainModel.Id }, regionDto);
+                return CreatedAtAction(nameof(GetRegionById), new { id = regionDomainModel.Id }, ApiResponse.Lists(regionDto));
         }
         #endregion
 
@@ -123,7 +113,7 @@ namespace NZWalks.API.Controllers
                     return NotFound(new { Message = $"Region with Id {id} not found!." });
                 }
                 var regionDto = mapper.Map<RegionDto>(regionDomainModel);
-                return Ok(regionDto);
+                return Ok(ApiResponse.Lists(regionDto));
         }
         #endregion
 
@@ -145,7 +135,7 @@ namespace NZWalks.API.Controllers
             //    RegionImageUrl = regionDomainModel.RegionImageUrl
             //};
             var regionDto = mapper.Map<RegionDto>(regionDomainModel);
-            return Ok(regionDto);
+            return Ok(ApiResponse.Lists(regionDto));
         }
         #endregion
     }
