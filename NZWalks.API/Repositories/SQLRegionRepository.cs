@@ -52,6 +52,11 @@ namespace NZWalks.API.Repositories
                     query = isAscending ? query.OrderBy(x => x.Code) : query.OrderByDescending(x => x.Code);
                 }
             }
+            else
+            {
+                // Ensure deterministic ordering for pagination (avoids EF warning)
+                query = query.OrderBy(x => x.Id);
+            }
 
             var regions = await query
                 .Skip((pageNumber - 1) * pageSize)

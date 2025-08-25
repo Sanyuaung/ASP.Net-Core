@@ -7,9 +7,16 @@ namespace NZWalks.API.Controllers
     [ApiController]
     public class StudendsController : ControllerBase
     {
+        private readonly ILogger<StudendsController> logger;
+        public StudendsController(ILogger<StudendsController> logger)
+        {
+            this.logger = logger;
+        }
+
         [HttpGet]
         public IActionResult GetAllStudents()
         {
+            logger.LogInformation("GetAllStudents called");
             string[] studentNames = new string[]
             {
                 "John Doe",

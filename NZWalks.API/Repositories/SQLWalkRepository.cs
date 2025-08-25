@@ -64,6 +64,11 @@ namespace NZWalks.API.Repositories
                     walksQuery = isAscending ? walksQuery.OrderBy(x => x.LengthInKm) : walksQuery.OrderByDescending(x => x.LengthInKm);
                 }
             }
+            else
+            {
+                // Deterministic ordering for pagination
+                walksQuery = walksQuery.OrderBy(x => x.Id);
+            }
 
             // Pagination
             var walks = await walksQuery

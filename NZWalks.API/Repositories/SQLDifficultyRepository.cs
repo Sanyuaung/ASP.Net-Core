@@ -43,6 +43,11 @@ namespace NZWalks.API.Repositories
                     query = isAscending ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name);
                 }
             }
+            else
+            {
+                // Deterministic ordering for pagination
+                query = query.OrderBy(x => x.Id);
+            }
 
             var difficulties = await query
                 .Skip((pageNumber - 1) * pageSize)
