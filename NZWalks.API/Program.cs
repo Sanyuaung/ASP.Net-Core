@@ -4,6 +4,9 @@ using NZWalks.API.Mappings;
 using NZWalks.API.Repositories;
 using Serilog;
 using NZWalks.API.CustomActionFilters;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,18 @@ builder.Services.AddScoped<IDifficultyRepository, SQLDifficultyRepository>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 // Filters
 builder.Services.AddScoped<LogResultActionFilter>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
+    });
 
 var app = builder.Build();
 
@@ -50,6 +65,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

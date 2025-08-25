@@ -7,11 +7,13 @@ using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
 using NZWalks.API.Models.Responses;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NZWalks.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DifficultiesController : ControllerBase
     {
         private readonly IMapper mapper;
